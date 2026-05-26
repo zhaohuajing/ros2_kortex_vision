@@ -232,63 +232,9 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(LaunchConfiguration("depth_registration")),
     )
 
-    # Static Transformation Publishers
-    # camera_depth_tf_publisher = Node(
-    #     package="tf2_ros",
-    #     namespace=LaunchConfiguration("camera"),
-    #     executable="static_transform_publisher",
-    #     name="camera_depth_tf_publisher",
-    #     output="both",
-    #     arguments=[
-    #         "-0.0195",
-    #         "-0.005",
-    #         "0",
-    #         "0",
-    #         "0",
-    #         "0",
-    #         LaunchConfiguration("camera_link_frame_id"),
-    #         LaunchConfiguration("depth_frame_id"),
-    #     ],
-    #     condition=IfCondition(LaunchConfiguration("launch_depth")),
-    # )
+    # Static Transformation Publishers (Note 2026: Need tf modification resolve color-depth misalignment)
+    
 
-    # DEBUG: Replace tf with camera_depth_frame in gen3_macro.xacro to debug color-depth misalignment
-    camera_depth_tf_publisher = Node(
-        package="tf2_ros",
-        namespace=LaunchConfiguration("camera"),
-        executable="static_transform_publisher",
-        name="camera_depth_tf_publisher",
-        output="both",
-        arguments=[
-            # "0.0275","0.066","-0.00305","3.14159265358979","3.14159265358979","0", # using camera_depth_frame in gen3_macro.xacro
-            # "0.0","0.066","-0.00305","3.14159265358979","3.14159265358979","0", # pushing camera_depth_frame to the middle of camera as both left and righ IR seem to be used
-            "0.0","0.05639","-0.00305","3.14159265358979","3.14159265358979","0", # use the same tf as of color_frame for depth_frame
-            LaunchConfiguration("camera_link_frame_id"),
-            LaunchConfiguration("depth_frame_id"),
-        ],
-        condition=IfCondition(LaunchConfiguration("launch_depth")),
-    )
-
-    # camera_color_tf_publisher = Node(
-    #     package="tf2_ros",
-    #     namespace=LaunchConfiguration("camera"),
-    #     executable="static_transform_publisher",
-    #     name="camera_color_tf_publisher",
-    #     output="both",
-    #     arguments=[
-    #         "0",
-    #         "0",
-    #         "0",
-    #         "0",
-    #         "0",
-    #         "0",
-    #         LaunchConfiguration("camera_link_frame_id"),
-    #         LaunchConfiguration("color_frame_id"),
-    #     ],
-    #     condition=IfCondition(LaunchConfiguration("launch_color")),
-    # )
-
-    # DEBUG: Replace tf with camera_color_frame in gen3_macro.xacro to debug color-depth misalignment
     camera_color_tf_publisher = Node(
         package="tf2_ros",
         namespace=LaunchConfiguration("camera"),
@@ -296,12 +242,42 @@ def launch_setup(context, *args, **kwargs):
         name="camera_color_tf_publisher",
         output="both",
         arguments=[
-            "0", "0.05639", "-0.00305", "3.14159265358979", "3.14159265358979", "0",
+            # "0","0","0","0","0","0",  # original color_tf in kinova_vision.launch
+            # DEBUG: Replace vision tf with camera_color_frame in kinova_bringup gen3_macro.xacro to debug color-depth misalignment
+            # "0.0", "0.05639", "-0.00305", "3.14159265358979", "3.14159265358979", "0", # using camera_color_frame in gen3_macro.xacro
+            # DEBUG: Still use vision tf, only move depth tf frame
+            "0","0","0","0","0","0",  # original color_tf in kinova_vision.launch
             LaunchConfiguration("camera_link_frame_id"),
             LaunchConfiguration("color_frame_id"),
         ],
         condition=IfCondition(LaunchConfiguration("launch_color")),
     )
+
+    camera_depth_tf_publisher = Node(
+        package="tf2_ros",
+        namespace=LaunchConfiguration("camera"),
+        executable="static_transform_publisher",
+        name="camera_depth_tf_publisher",
+        output="both",
+        arguments=[
+            # "-0.0195","-0.005","0","0","0","0", # original depth_tf in kinova_vision.launch
+            # DEBUG: Replace vision tf with camera_depth_frame in kinova_bringup gen3_macro.xacro to debug color-depth misalignment
+            # "0.0275","0.066","-0.00305","3.14159265358979","3.14159265358979","0", # using camera_depth_frame in gen3_macro.xacro
+            # "0.0","0.066","-0.00305","3.14159265358979","3.14159265358979","0", #  (fine) pushing camera_depth_frame to the middle of camera as both left and righ IR seem to be used
+            # "0.0","0.05639","-0.00305","3.14159265358979","3.14159265358979","0", # (good, better horizontal only) use the same tf as of color_frame for depth_frame in gen3_macro.xacr
+            # DEBUG: Still use vision tf, only move depth tf frame
+            # "-0.0","-0.005","0","0","0","0", # pushing depth_tf in kinova_vision.launch to the horizontal middle of camera (move in X)
+            # "-0.0","-0.00","0","0","0","0", # (good) using the same depth_tf in kinova_vision.launch as of color_tf
+            # "0.0195","0.00","0","0","0","0", #  pushing depth_tf in kinova_vision.launch in X twice to the other side of the camera (move in X twice)
+            # "0.0195","0.005","0","0","0","0", # (good) pushing depth_tf in kinova_vision.launch the horizontal and vertical other side of the camera (move in X and Y twice)
+            "0.0","0.005","0","0","0","0", # (good/best) put X to zero (same as color), and move Y twice to to the vertical other side (move in Y twice)
+            LaunchConfiguration("camera_link_frame_id"),
+            LaunchConfiguration("depth_frame_id"),
+        ],
+        condition=IfCondition(LaunchConfiguration("launch_depth")),
+    )
+
+
 
     return [
         depth_node,
