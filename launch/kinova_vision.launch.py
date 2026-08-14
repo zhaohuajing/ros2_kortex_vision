@@ -246,7 +246,9 @@ def launch_setup(context, *args, **kwargs):
             # DEBUG: Replace vision tf with camera_color_frame in kinova_bringup gen3_macro.xacro to debug color-depth misalignment
             # "0.0", "0.05639", "-0.00305", "3.14159265358979", "3.14159265358979", "0", # using camera_color_frame in gen3_macro.xacro
             # DEBUG: Still use vision tf, only move depth tf frame
-            "0","0","0","0","0","0",  # original color_tf in kinova_vision.launch
+            "0","0","0","0","0","0",  # (good to use) original color_tf in kinova_vision.launch
+            # "0","-0.00733","0","0","0","0",  # (bad) reference to physical camera len mesurement for its vertical diplacement from center line: 25.74/2-8.54=7.33mm=0.00733
+            # "0","-0.0025","0","0","0","0",  # just move color and depth symmetric in vertical direction with distance ~0.005
             LaunchConfiguration("camera_link_frame_id"),
             LaunchConfiguration("color_frame_id"),
         ],
@@ -270,7 +272,9 @@ def launch_setup(context, *args, **kwargs):
             # "-0.0","-0.00","0","0","0","0", # (good) using the same depth_tf in kinova_vision.launch as of color_tf
             # "0.0195","0.00","0","0","0","0", #  pushing depth_tf in kinova_vision.launch in X twice to the other side of the camera (move in X twice)
             # "0.0195","0.005","0","0","0","0", # (good) pushing depth_tf in kinova_vision.launch the horizontal and vertical other side of the camera (move in X and Y twice)
-            "0.0","0.005","0","0","0","0", # (good/best) put X to zero (same as color), and move Y twice to to the vertical other side (move in Y twice)
+            # "0.0","0.005","0","0","0","0", # (good/best) put X to zero (same as color), and move Y twice to to the vertical other side (move in Y twice)
+            # "0.0","0.00725","0","0","0","0",# (bad) reference to physical camera len mesurement for its vertical diplacement from center line: 25.74/2-8.62=7.25mm=0.00725
+            "0.0","0.0025","0","0","0","0", # (best) keep color frame as all zeros, tuned vertical depth position
             LaunchConfiguration("camera_link_frame_id"),
             LaunchConfiguration("depth_frame_id"),
         ],
